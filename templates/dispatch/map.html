@@ -1,0 +1,28 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taxi KG — диспетчерская карта</title>
+  <link href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css" rel="stylesheet">
+  <link href="{% static 'dispatch/map.css' %}" rel="stylesheet">
+</head>
+<body>
+  <main class="layout">
+    <aside class="sidebar">
+      <header><div class="eyebrow">TAXI KG</div><h1>Диспетчерская</h1><p id="connection" class="connection">Подключаемся…</p></header>
+      {% if geocoding_enabled %}<form id="address-search" class="address-search"><label for="address-query">Найти адрес</label><div><input id="address-query" name="q" maxlength="200" placeholder="Например, Ошский рынок"><button type="submit">Найти</button></div><small id="search-result" aria-live="polite"></small></form>{% endif %}
+      <section><h2>Заказы <span id="order-count">0</span></h2><div id="orders" class="list"></div></section>
+      <section><h2>Водители <span id="driver-count">0</span></h2><div id="drivers" class="list"></div></section>
+      <footer><a href="/admin/">Администрирование</a></footer>
+    </aside>
+    <section class="map-wrap">
+      <div id="map"></div>
+      <div id="map-notice" class="map-notice" hidden></div>
+      <div class="legend"><span><i class="dot pickup"></i>Подача</span><span><i class="dot car">●</i>Водитель</span></div>
+    </section>
+  </main>
+  <script>window.TAXI_MAP_STYLE_URL = "{{ map_style_url|escapejs }}";</script>
+  <script type="module" src="{% static 'dispatch/map.js' %}"></script>
+</body>
+</html>

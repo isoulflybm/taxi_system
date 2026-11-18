@@ -1,0 +1,51 @@
+# Self-hosted Kyrgyzstan geocoder and road router.
+# Put the Geofabrik .osm.pbf extract in OSM_DATA_DIR/OSM_PBF_FILE first.
+services:
+  web:
+    environment:
+      NOMINATIM_BASE_URL: http://nominatim:8080
+      OSRM_BASE_URL: http://osrm:5000
+
+  nominatim:
+    image: mediagis/nominatim:5.3
+    profiles: ["geodata"]
+    restart: unless-stopped
+    shm_size: 1gb
+    environment:
+      PBF_PATH: /nominatim/data/${OSM_PBF_FILE:-kyrgyzstan-261031.osm.pbf}
+      REPLICATION_URL: https://download.geofabrik.de/asia/kyrgyzstan-updates/
+      NOMINATIM_PASSWORD: ${NOMINATIM_PASSWORD:-local-only-change-this}
+      IMPORT_STYLE: address
+      IMPORT_WIKIPEDIA: "false"
+      POSTGRES_SHARED_BUFFERS: 512MB
+      POSTGRES_MAINTENANCE_WORK_MEM: 1GB
+      POSTGRES_AUTOVACUUM_WORK_MEM: 256MB
+      POSTGRES_WORK_MEM: 32MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 2GB
+    volumes:
+      # Nominatim's entrypoint chowns /nominatim recursively, so mount only
+      # the PBF read-write; do not expose OSRM-generated files here.
+      - ${OSM_DATA_DIR:-./data}/${OSM_PBF_FILE:-kyrgyzstan-261031.osm.pbf}:/nominatim/data/${OSM_PBF_FILE:-kyrgyzstan-261031.osm.pbf}
+      - nominatim_data:/var/lib/postgresql/16/main
+      - nominatim_flatnode:/nominatim/flatnode
+    expose:
+      - "8080"
+
+  osrm:
+    image: ghcr.io/project-osrm/osrm-backend
+    profiles: ["geodata"]
+    restart: unless-stopped
+    volumes:
+      - ${OSM_DATA_DIR:-./data}:/data
+    command: >-
+      sh -c 'if [ ! -f /data/kyrgyzstan-261031.osrm.properties ]; then
+      osrm-extract -p /opt/car.lua /data/${OSM_PBF_FILE:-kyrgyzstan-261031.osm.pbf} &&
+      osrm-partition /data/kyrgyzstan-261031.osrm &&
+      osrm-customize /data/kyrgyzstan-261031.osrm;
+      fi && osrm-routed --algorithm mld /data/kyrgyzstan-261031.osrm'
+    expose:
+      - "5000"
+
+volumes:
+  nominatim_data:
+  nominatim_flatnode:

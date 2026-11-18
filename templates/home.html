@@ -1,0 +1,32 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taxi KG — поездки по Кыргызстану</title>
+  <link href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css" rel="stylesheet">
+  <style>
+    :root{font-family:Inter,system-ui,sans-serif;color:#18312b;background:#f4f7f4}*{box-sizing:border-box}body{margin:0}.top{height:72px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100vw - 1240px)/2));border-bottom:1px solid #e1e9e3}.brand{font-weight:900;letter-spacing:.14em;color:#087c54}.nav{display:flex;gap:18px;align-items:center}.nav a{color:#335149;text-decoration:none;font-weight:650}.button{border:0;border-radius:12px;background:#087c54;color:#fff;padding:13px 18px;font-weight:750;cursor:pointer;text-decoration:none}.wrap{max-width:1240px;margin:34px auto;padding:0 24px;display:grid;grid-template-columns:minmax(340px,460px) 1fr;gap:24px}.panel{background:#fff;border:1px solid #e2e9e4;border-radius:22px;padding:28px;box-shadow:0 12px 36px #1b51300b}.eyebrow{color:#087c54;font-size:12px;font-weight:850;letter-spacing:.16em}.panel h1{font-size:35px;line-height:1.1;margin:12px 0}.lead{color:#64766f;line-height:1.55;margin:0 0 22px}.address{margin:16px 0}.address label{display:block;font-weight:750;margin:0 0 7px}.inputrow{display:flex;gap:8px}.inputrow input{width:100%;min-width:0;border:1px solid #d5e0d9;border-radius:10px;padding:12px;font:inherit}.secondary{background:#eef6f1;color:#087c54;border:1px solid #d9e9de;padding:10px 13px;border-radius:10px;font-weight:700;cursor:pointer}.hint{font-size:12px;color:#6f8079;min-height:18px;margin-top:5px}.summary{background:#f2f8f4;border-radius:14px;padding:14px;margin:18px 0;line-height:1.7}.summary strong{font-size:20px}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.mapbox{height:620px;min-height:420px;border-radius:22px;overflow:hidden;background:#e3ebe5;position:relative}.mapnote{position:absolute;bottom:16px;left:16px;background:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 3px 18px #0002;font-size:13px}.footer{font-size:12px;color:#7b8882;margin-top:20px;line-height:1.5}@media(max-width:850px){.wrap{grid-template-columns:1fr;margin:18px auto}.mapbox{height:390px;min-height:390px}.top{padding:0 18px}.panel h1{font-size:29px}}
+  </style>
+</head>
+<body>
+  <header class="top"><a class="brand" href="/">TAXI KG</a><nav class="nav">
+    {% if request.user.is_authenticated %}<span>{{ request.user.username }}</span>{% if request.user.taxi_profile.role == "driver" %}<a href="/driver/location/">Кабинет водителя</a>{% endif %}<form method="post" action="/accounts/logout/">{% csrf_token %}<button class="secondary" type="submit">Выйти</button></form>
+    {% else %}<a href="/accounts/login/">Войти</a><a class="button" href="/accounts/signup/">Регистрация</a>{% endif %}
+  </nav></header>
+  <main class="wrap">
+    <section class="panel">
+      <div class="eyebrow">ПОЕЗДКИ ПО КЫРГЫЗСТАНУ</div><h1>Куда едем?</h1>
+      <p class="lead">Укажите адреса — покажем маршрут, ориентировочную цену и наличие свободных машин поблизости.</p>
+      <form id="csrf-form">{% csrf_token %}</form>
+      <div class="address"><label for="pickup">Откуда</label><div class="inputrow"><input id="pickup" placeholder="Город, улица, место"><button class="secondary" type="button" data-search="pickup">Найти</button></div><div id="pickup-hint" class="hint"></div></div>
+      <div class="address"><label for="dropoff">Куда</label><div class="inputrow"><input id="dropoff" placeholder="Город, улица, место"><button class="secondary" type="button" data-search="dropoff">Найти</button></div><div id="dropoff-hint" class="hint"></div></div>
+      <div class="summary" id="quote">Выберите адреса подачи и назначения.</div>
+      <div class="actions"><button class="button" id="estimate" type="button">Рассчитать поездку</button>{% if request.user.is_authenticated and request.user.taxi_profile.role == "customer" %}<button class="secondary" id="book" type="button" disabled>Заказать машину</button>{% elif not request.user.is_authenticated %}<a class="secondary" href="/accounts/signup/">Зарегистрируйтесь, чтобы заказать</a>{% endif %}</div>
+      <p class="footer">Цена предварительная. Итог рассчитывается после поездки по фактическому GPS-треку. Доступность машин показывается без публикации их точных координат.</p>
+    </section>
+    <section class="mapbox"><div id="map" style="width:100%;height:100%"></div><div id="mapnote" class="mapnote">Выберите адреса, чтобы увидеть маршрут</div></section>
+  </main>
+  <script>window.TAXI_MAP_STYLE_URL="{{ map_style_url|escapejs }}";</script>
+  <script type="module" src="{% static 'dispatch/home.js' %}"></script>
+</body></html>

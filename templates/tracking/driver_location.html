@@ -1,0 +1,17 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Taxi KG — геолокация водителя</title><link href="{% static 'tracking/driver.css' %}" rel="stylesheet"></head>
+<body>
+  <main class="card">
+    <div class="eyebrow">TAXI KG</div><h1>Передача геолокации</h1>
+    <p>Оставь эту страницу открытой во время смены. Браузер будет отправлять координаты, пока геолокация включена.</p>
+    <form id="csrf-form">{% csrf_token %}</form>
+    <div class="actions"><button id="start" type="button">Начать передачу</button><button id="stop" type="button" disabled>Остановить</button></div>
+    <p id="status" role="status">Передача остановлена.</p><p id="coordinates" class="coordinates">Ожидание координат</p>
+    <small>Нужны разрешение браузера на геолокацию и защищённое HTTPS-соединение (или localhost).</small>
+    <section class="orders-panel"><h2>Мои активные заказы</h2><div id="driver-orders">Загружаем…</div></section>
+  </main>
+  <script src="{% static 'tracking/driver.js' %}"></script>
+</body>
+</html>
